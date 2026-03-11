@@ -30,7 +30,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
           value: 'assessment',
           child: Row(
             children: [
-              Icon(Icons.check_circle, size: 20, color: AppTheme.primaryGreen),
+              Icon(Icons.check_circle, size: 20, color: Color.fromARGB(255, 23, 233, 89)),
               SizedBox(width: 8),
               Text('Assessment Completed'),
             ],
@@ -40,7 +40,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
           value: 'results',
           child: Row(
             children: [
-              Icon(Icons.assessment, size: 20, color: AppTheme.primaryBlue),
+              Icon(Icons.assessment, size: 20, color: Color.fromARGB(255, 17, 139, 240)),
               SizedBox(width: 8),
               Text('Results Available'),
             ],
@@ -69,7 +69,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
           value: 'notification1',
           child: Row(
             children: [
-              Icon(Icons.email, size: 20, color: AppTheme.primaryBlue),
+              Icon(Icons.email, size: 20, color: Color.fromARGB(255, 215, 238, 8)),
               SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -87,7 +87,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
           value: 'notification2',
           child: Row(
             children: [
-              Icon(Icons.info, size: 20, color: AppTheme.primaryOrange),
+              Icon(Icons.info, size: 20, color: AppTheme.lilac),
               SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -143,7 +143,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(
-                      color: AppTheme.primaryRed,
+                      color: const Color(0xFFE53E3E),
                       shape: BoxShape.circle,
                     ),
                     constraints: const BoxConstraints(
@@ -216,7 +216,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryYellow,
-                      foregroundColor: AppTheme.primaryBlue,
+                      foregroundColor: AppTheme.primaryPurple,
                       elevation: 4,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -228,14 +228,14 @@ class _StudentDashboardState extends State<StudentDashboard> {
                         Icon(
                           Icons.quiz,
                           size: 28,
-                          color: AppTheme.primaryBlue,
+                          color: AppTheme.primaryPurple,
                         ),
                         const SizedBox(width: 12),
                         Text(
                           'Start RIASEC Test',
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryBlue,
+                            color: AppTheme.primaryPurple,
                           ),
                         ),
                       ],

@@ -1,5 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
+
+import '../../services/session_manager.dart';
 import '../../theme/app_theme.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -11,25 +16,77 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _primaryController = TextEditingController();
   final _passwordController = TextEditingController();
-  String _userType = 'student'; // 'student' or 'guidance_counselor'
+  String _userType = 'student';
+  bool _isLoading = false;
+  String _errorMessage = '';
+
+  final String apiUrl = 'http://localhost/riasec_app/login.php';
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _primaryController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  void _handleLogin() {
-    if (_formKey.currentState!.validate()) {
-      // Navigate based on user type
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    try {
+      final Map<String, String> body = {
+        "role":     _userType,
+        "password": _passwordController.text.trim(),
+      };
+
       if (_userType == 'student') {
-        context.go('/student/dashboard');
+        body['student_id'] = _primaryController.text.trim();
       } else {
-        context.go('/guidance-counselor/dashboard');
+        body['email'] = _primaryController.text.trim();
       }
+
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(body),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (data['status'] == 'success') {
+        if (!mounted) return;
+
+        final session = SessionManager();
+
+        if (_userType == 'student') {
+          session.setStudent({
+            'studentId':   data['studentId']?.toString(),
+            'firstName':   data['firstName'],
+            'lastName':    data['lastName'],
+            'hasApproved': data['hasApproved'],
+          });
+          context.go('/student/dashboard');
+        } else {
+          session.setCounselor({
+            'counselorId': data['counselorId'],
+            'firstName':   data['firstName'],
+            'lastName':    data['lastName'],
+          });
+          context.go('/guidance-counselor/dashboard');
+        }
+      } else {
+        setState(() => _errorMessage = data['message'] ?? 'Login failed');
+      }
+    } catch (e) {
+      setState(() => _errorMessage = 'Could not connect to server.');
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -42,8 +99,8 @@ class _LoginScreenState extends State<LoginScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppTheme.primaryBlue.withOpacity(0.1),
-              AppTheme.primaryGreen.withOpacity(0.1),
+              AppTheme.primaryPurple.withOpacity(0.1),
+              AppTheme.lilac.withOpacity(0.2),
             ],
           ),
         ),
@@ -62,11 +119,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Logo/Title
                         Icon(
                           Icons.school,
                           size: 64,
-                          color: AppTheme.primaryBlue,
+                          color: AppTheme.primaryPurple,
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -86,8 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 32),
-                        
-                        // User Type Selection
+
                         SegmentedButton<String>(
                           segments: const [
                             ButtonSegment(
@@ -105,32 +160,38 @@ class _LoginScreenState extends State<LoginScreen> {
                           onSelectionChanged: (Set<String> newSelection) {
                             setState(() {
                               _userType = newSelection.first;
+                              _primaryController.clear();
+                              _errorMessage = '';
                             });
                           },
                         ),
                         const SizedBox(height: 24),
-                        
-                        // Email Field
+
                         TextFormField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            prefixIcon: Icon(Icons.email),
+                          controller: _primaryController,
+                          decoration: InputDecoration(
+                            labelText: _userType == 'student' ? 'Student ID' : 'Email',
+                            prefixIcon: Icon(
+                              _userType == 'student' ? Icons.badge : Icons.email,
+                            ),
                           ),
-                          keyboardType: TextInputType.emailAddress,
+                          keyboardType: _userType == 'student'
+                              ? TextInputType.text
+                              : TextInputType.emailAddress,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter your email';
+                              return _userType == 'student'
+                                  ? 'Please enter your Student ID'
+                                  : 'Please enter your email';
                             }
-                            if (!value.contains('@')) {
+                            if (_userType == 'guidance_counselor' && !value.contains('@')) {
                               return 'Please enter a valid email';
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 16),
-                        
-                        // Password Field
+
                         TextFormField(
                           controller: _passwordController,
                           decoration: const InputDecoration(
@@ -145,27 +206,28 @@ class _LoginScreenState extends State<LoginScreen> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 24),
-                        
-                        // Login Button
-                        ElevatedButton(
-                          onPressed: _handleLogin,
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                        const SizedBox(height: 8),
+
+                        if (_errorMessage.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text(
+                              _errorMessage,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.red),
+                            ),
                           ),
-                          child: const Text('Login'),
-                        ),
                         const SizedBox(height: 16),
-                        
-                        // Demo Note
-                        Text(
-                          'Demo Mode: Use any credentials to login',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppTheme.textSecondary,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
+
+                        _isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : ElevatedButton(
+                                onPressed: _handleLogin,
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                ),
+                                child: const Text('Login'),
+                              ),
                       ],
                     ),
                   ),

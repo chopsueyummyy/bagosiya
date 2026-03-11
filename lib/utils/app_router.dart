@@ -39,10 +39,7 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/student/assessment',
-      builder: (context, state) {
-        final studentDetails = state.extra as StudentDetails?;
-        return AssessmentScreen(studentDetails: studentDetails);
-      },
+      builder: (context, state) => const AssessmentScreen(),
     ),
     GoRoute(
       path: '/student/results',

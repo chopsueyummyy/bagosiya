@@ -19,7 +19,7 @@ class StudentSidebar extends StatelessWidget {
           // Header
           DrawerHeader(
             decoration: BoxDecoration(
-              color: AppTheme.primaryBlue,
+              color: AppTheme.primaryPurple,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,10 +89,10 @@ class StudentSidebar extends StatelessWidget {
           
           // Logout
           ListTile(
-            leading: const Icon(Icons.logout, color: AppTheme.primaryRed),
+            leading: const Icon(Icons.logout, color: const Color(0xFFE53E3E)),
             title: const Text(
               'Logout',
-              style: TextStyle(color: AppTheme.primaryRed),
+              style: TextStyle(color: const Color(0xFFE53E3E)),
             ),
             onTap: () {
               context.go('/login');
@@ -113,17 +113,17 @@ class StudentSidebar extends StatelessWidget {
     return ListTile(
       leading: Icon(
         icon,
-        color: isSelected ? AppTheme.primaryBlue : AppTheme.textSecondary,
+        color: isSelected ? AppTheme.primaryPurple : AppTheme.textSecondary,
       ),
       title: Text(
         title,
         style: TextStyle(
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-          color: isSelected ? AppTheme.primaryBlue : AppTheme.textPrimary,
+          color: isSelected ? AppTheme.primaryPurple : AppTheme.textPrimary,
         ),
       ),
       selected: isSelected,
-      selectedTileColor: AppTheme.primaryBlue.withOpacity(0.1),
+      selectedTileColor: AppTheme.primaryPurple.withOpacity(0.1),
       onTap: () {
         Navigator.pop(context); // Close drawer
         if (currentRoute != route) {

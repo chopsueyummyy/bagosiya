@@ -184,7 +184,7 @@ class _AIFeedbackScreenState extends State<AIFeedbackScreen> {
                           child: _buildStatCard(
                             'Total Feedback',
                             '${_feedbackHistory.length}',
-                            AppTheme.primaryBlue,
+                            AppTheme.primaryPurple,
                             Icons.feedback,
                           ),
                         ),
@@ -193,7 +193,7 @@ class _AIFeedbackScreenState extends State<AIFeedbackScreen> {
                           child: _buildStatCard(
                             'Avg. Rating',
                             '${(_feedbackHistory.map((f) => f.rating ?? 0).reduce((a, b) => a + b) / _feedbackHistory.length).toStringAsFixed(1)}',
-                            AppTheme.primaryGreen,
+                            AppTheme.primaryPurple,
                             Icons.star,
                           ),
                         ),
@@ -202,7 +202,7 @@ class _AIFeedbackScreenState extends State<AIFeedbackScreen> {
                           child: _buildStatCard(
                             'Approved',
                             '${_feedbackHistory.where((f) => f.action == 'approved').length}',
-                            AppTheme.primaryGreen,
+                            AppTheme.primaryPurple,
                             Icons.check_circle,
                           ),
                         ),
@@ -283,10 +283,10 @@ class _AIFeedbackScreenState extends State<AIFeedbackScreen> {
               Card(
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
+                    backgroundColor: AppTheme.primaryPurple.withOpacity(0.1),
                     child: Icon(
                       Icons.person,
-                      color: AppTheme.primaryBlue,
+                      color: AppTheme.primaryPurple,
                     ),
                   ),
                   title: Text(approval.student.name),
@@ -412,7 +412,7 @@ class _AIFeedbackScreenState extends State<AIFeedbackScreen> {
                       const SizedBox(height: 8),
                       ...approval.recommendations.map((rec) => Chip(
                         label: Text(rec.courseName),
-                        backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
+                        backgroundColor: AppTheme.primaryPurple.withOpacity(0.1),
                       )),
                       const SizedBox(height: 16),
                       Text(
@@ -444,7 +444,7 @@ class _AIFeedbackScreenState extends State<AIFeedbackScreen> {
                           children: _selectedCourses.map((course) {
                             return Chip(
                               label: Text(course),
-                              backgroundColor: AppTheme.primaryGreen.withOpacity(0.1),
+                              backgroundColor: AppTheme.primaryPurple.withOpacity(0.1),
                               onDeleted: () {
                                 setState(() {
                                   _selectedCourses.remove(course);
@@ -463,14 +463,14 @@ class _AIFeedbackScreenState extends State<AIFeedbackScreen> {
 
             // Learning Impact Info
             Card(
-              color: AppTheme.primaryGreen.withOpacity(0.1),
+              color: AppTheme.primaryPurple.withOpacity(0.1),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
                     Icon(
                       Icons.trending_up,
-                      color: AppTheme.primaryGreen,
+                      color: AppTheme.primaryPurple,
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -556,7 +556,7 @@ class _AIFeedbackScreenState extends State<AIFeedbackScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please provide at least a rating or comment'),
-          backgroundColor: AppTheme.primaryOrange,
+          backgroundColor: AppTheme.primaryYellow,
         ),
       );
       return;
@@ -617,7 +617,7 @@ class _AIFeedbackScreenState extends State<AIFeedbackScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Feedback submitted successfully! The AI will learn from your input.'),
-          backgroundColor: AppTheme.primaryGreen,
+          backgroundColor: AppTheme.primaryPurple,
           duration: Duration(seconds: 3),
         ),
       );
@@ -662,11 +662,11 @@ class _AIFeedbackScreenState extends State<AIFeedbackScreen> {
   Color _getActionColor(String action) {
     switch (action) {
       case 'approved':
-        return AppTheme.primaryGreen;
+        return AppTheme.primaryPurple;
       case 'rejected':
-        return AppTheme.primaryRed;
+        return const Color(0xFFE53E3E);
       case 'modified':
-        return AppTheme.primaryOrange;
+        return AppTheme.primaryYellow;
       default:
         return AppTheme.textSecondary;
     }

@@ -93,10 +93,10 @@ class CounselorSidebar extends StatelessWidget {
           
           // Logout
           ListTile(
-            leading: const Icon(Icons.logout, color: AppTheme.primaryRed),
+            leading: const Icon(Icons.logout, color: const Color(0xFFE53E3E)),
             title: const Text(
               'Logout',
-              style: TextStyle(color: AppTheme.primaryRed),
+              style: TextStyle(color: const Color(0xFFE53E3E)),
             ),
             onTap: () {
               context.go('/login');

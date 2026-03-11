@@ -218,7 +218,7 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('$count recommendation(s) approved'),
-                  backgroundColor: AppTheme.primaryGreen,
+                  backgroundColor: AppTheme.primaryPurple,
                 ),
               );
             },
@@ -254,12 +254,12 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('$count recommendation(s) rejected'),
-                  backgroundColor: AppTheme.primaryRed,
+                  backgroundColor: const Color(0xFFE53E3E),
                 ),
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryRed,
+              backgroundColor: const Color(0xFFE53E3E),
             ),
             child: const Text('Reject'),
           ),
@@ -417,7 +417,7 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
           if (_isSelectionMode && _selectedApprovals.isNotEmpty)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              color: AppTheme.primaryBlue.withOpacity(0.1),
+              color: AppTheme.primaryPurple.withOpacity(0.1),
               child: Row(
                 children: [
                   Text(
@@ -438,7 +438,7 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
                     icon: const Icon(Icons.close),
                     label: const Text('Reject'),
                     style: TextButton.styleFrom(
-                      foregroundColor: AppTheme.primaryRed,
+                      foregroundColor: const Color(0xFFE53E3E),
                     ),
                   ),
                 ],
@@ -455,7 +455,7 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
                   Icon(
                     Icons.check_circle_outline,
                     size: 64,
-                    color: AppTheme.primaryGreen,
+                    color: AppTheme.primaryPurple,
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -484,7 +484,7 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
                 final cardContent = Card(
                   margin: const EdgeInsets.only(bottom: 16),
                   elevation: isSelected ? 4 : 2,
-                  color: isSelected ? AppTheme.primaryBlue.withOpacity(0.05) : null,
+                  color: isSelected ? AppTheme.primaryPurple.withOpacity(0.05) : null,
                   child: ExpansionTile(
                     initiallyExpanded: index == 0 && !_isSelectionMode,
                     leading: _isSelectionMode
@@ -493,10 +493,10 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
                             onChanged: (value) => _toggleSelection(approval.assessment.id),
                           )
                         : CircleAvatar(
-                            backgroundColor: AppTheme.primaryOrange.withOpacity(0.1),
+                            backgroundColor: const Color.fromARGB(255, 238, 140, 11).withOpacity(0.1),
                             child: Icon(
                               Icons.pending,
-                              color: AppTheme.primaryOrange,
+                              color: const Color.fromARGB(255, 238, 140, 11),
                             ),
                           ),
                     title: Text(
@@ -520,9 +520,9 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
                             padding: const EdgeInsets.only(top: 4.0),
                             child: Chip(
                               label: const Text('Selected', style: TextStyle(fontSize: 10)),
-                              backgroundColor: AppTheme.primaryBlue.withOpacity(0.2),
+                              backgroundColor: AppTheme.primaryPurple.withOpacity(0.2),
                               labelStyle: TextStyle(
-                                color: AppTheme.primaryBlue,
+                                color: AppTheme.primaryPurple,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -559,7 +559,7 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
                                     icon: const Icon(Icons.close),
                                     label: const Text('Reject'),
                                     style: OutlinedButton.styleFrom(
-                                      foregroundColor: AppTheme.primaryRed,
+                                      foregroundColor: const Color(0xFFE53E3E),
                                     ),
                                   ),
                                 ),
@@ -581,7 +581,7 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
                                 icon: const Icon(Icons.edit),
                                 label: const Text('Modify & Provide Feedback'),
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppTheme.primaryBlue,
+                                  foregroundColor: AppTheme.primaryPurple,
                                 ),
                               ),
                             ),
@@ -609,7 +609,7 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
 
   Widget _buildRIASECOverview(AssessmentResult assessment) {
     return Card(
-      color: AppTheme.primaryBlue.withOpacity(0.05),
+      color: AppTheme.primaryPurple.withOpacity(0.05),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -617,7 +617,7 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
           children: [
             Row(
               children: [
-                Icon(Icons.assessment, color: AppTheme.primaryBlue),
+                Icon(Icons.assessment, color: AppTheme.primaryPurple),
                 const SizedBox(width: 8),
                 Text(
                   'RIASEC Assessment Overview',
@@ -739,10 +739,10 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       child: ExpansionTile(
         leading: CircleAvatar(
-          backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
+          backgroundColor: AppTheme.primaryPurple.withOpacity(0.1),
           child: Icon(
             Icons.school,
-            color: AppTheme.primaryBlue,
+            color: AppTheme.primaryPurple,
           ),
         ),
         title: Text(
@@ -768,9 +768,9 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
                     'Match: ${(recommendation.matchScore * 100).toInt()}%',
                     style: const TextStyle(fontSize: 10),
                   ),
-                  backgroundColor: AppTheme.primaryGreen.withOpacity(0.1),
+                  backgroundColor: const Color.fromARGB(255, 62, 229, 70).withOpacity(0.1),
                   labelStyle: TextStyle(
-                    color: AppTheme.primaryGreen,
+                    color: const Color.fromARGB(255, 62, 229, 70),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -818,17 +818,17 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
   Color _getTypeColor(RIASECType type) {
     switch (type) {
       case RIASECType.realistic:
-        return AppTheme.primaryRed;
+        return const Color(0xFFE53E3E);
       case RIASECType.investigative:
-        return AppTheme.primaryBlue;
+        return const Color.fromARGB(255, 32, 81, 230);
       case RIASECType.artistic:
         return AppTheme.primaryPurple;
       case RIASECType.social:
-        return AppTheme.primaryGreen;
+        return const Color.fromARGB(255, 33, 212, 17);
       case RIASECType.enterprising:
         return AppTheme.primaryYellow;
       case RIASECType.conventional:
-        return AppTheme.primaryOrange;
+        return const Color.fromARGB(255, 244, 133, 6);
     }
   }
 
@@ -864,7 +864,7 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Recommendation approved successfully'),
-            backgroundColor: AppTheme.primaryGreen,
+            backgroundColor: Color.fromARGB(255, 28, 230, 45),
           ),
         );
       }
@@ -908,7 +908,7 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
               });
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryRed,
+              backgroundColor: const Color(0xFFE53E3E),
             ),
             child: const Text('Reject & Give Feedback'),
           ),

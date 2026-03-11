@@ -38,7 +38,7 @@ class AssessmentInstructionsScreen extends StatelessWidget {
           children: [
             // Welcome Card
             Card(
-              color: AppTheme.primaryBlue.withOpacity(0.1),
+              color: AppTheme.primaryPurple.withOpacity(0.1),
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Row(
@@ -46,7 +46,7 @@ class AssessmentInstructionsScreen extends StatelessWidget {
                     Icon(
                       Icons.quiz,
                       size: 48,
-                      color: AppTheme.primaryBlue,
+                      color: AppTheme.primaryPurple,
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -121,7 +121,7 @@ class AssessmentInstructionsScreen extends StatelessWidget {
 
             // Important Notes
             Card(
-              color: AppTheme.primaryOrange.withOpacity(0.1),
+              color: const Color.fromARGB(255, 238, 137, 5).withOpacity(0.1),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
@@ -129,7 +129,7 @@ class AssessmentInstructionsScreen extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.info,
-                      color: AppTheme.primaryOrange,
+                      color: const Color.fromARGB(255, 238, 137, 5),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -203,10 +203,10 @@ class AssessmentInstructionsScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CircleAvatar(
-            backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
+            backgroundColor: AppTheme.primaryPurple.withOpacity(0.1),
             child: Icon(
               icon,
-              color: AppTheme.primaryBlue,
+              color: AppTheme.primaryPurple,
             ),
           ),
           const SizedBox(width: 16),

@@ -111,7 +111,7 @@ class HistoryScreen extends StatelessWidget {
                           'Total Assessments',
                           historyItems.length.toString(),
                           Icons.assessment,
-                          AppTheme.primaryBlue,
+                          AppTheme.primaryPurple,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -121,7 +121,7 @@ class HistoryScreen extends StatelessWidget {
                           'Approved',
                           historyItems.where((item) => item.status == 'approved').length.toString(),
                           Icons.check_circle,
-                          AppTheme.primaryGreen,
+                          const Color.fromARGB(255, 53, 245, 11),
                         ),
                       ),
                     ],
@@ -221,9 +221,9 @@ class HistoryScreen extends StatelessWidget {
                                         course,
                                         style: const TextStyle(fontSize: 11),
                                       ),
-                                      backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
+                                      backgroundColor: const Color.fromARGB(255, 53, 88, 243).withOpacity(0.1),
                                       labelStyle: TextStyle(
-                                        color: AppTheme.primaryBlue,
+                                        color: const Color.fromARGB(255, 53, 88, 243),
                                       ),
                                     );
                                   }).toList(),
@@ -297,10 +297,10 @@ class HistoryScreen extends StatelessWidget {
         ),
       ),
       backgroundColor: isPrimary
-          ? AppTheme.primaryBlue.withOpacity(0.2)
-          : AppTheme.primaryGreen.withOpacity(0.2),
+          ? const Color.fromARGB(255, 53, 88, 243).withOpacity(0.2)
+          : const Color.fromARGB(255, 15, 244, 80).withOpacity(0.2),
       avatar: CircleAvatar(
-        backgroundColor: isPrimary ? AppTheme.primaryBlue : AppTheme.primaryGreen,
+        backgroundColor: isPrimary ? const Color.fromARGB(255, 53, 88, 243) : const Color.fromARGB(255, 15, 244, 80),
         radius: 10,
         child: Text(
           type.code,
@@ -317,12 +317,12 @@ class HistoryScreen extends StatelessWidget {
   Color _getStatusColor(String? status) {
     switch (status) {
       case 'approved':
-        return AppTheme.primaryGreen;
+        return const Color.fromARGB(255, 15, 244, 80);
       case 'rejected':
-        return AppTheme.primaryRed;
+        return const Color(0xFFE53E3E);
       case 'pending':
       default:
-        return AppTheme.primaryOrange;
+        return const Color.fromARGB(255, 240, 155, 8);
     }
   }
 
@@ -389,7 +389,7 @@ class HistoryScreen extends StatelessWidget {
               ...result.recommendedCourses.take(3).map((course) => Card(
                 margin: const EdgeInsets.only(bottom: 8),
                 child: ListTile(
-                  leading: Icon(Icons.school, color: AppTheme.primaryBlue),
+                  leading: Icon(Icons.school, color: AppTheme.primaryPurple),
                   title: Text(course),
                 ),
               )),

@@ -1,197 +1,229 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
-import '../../models/riasec_models.dart';
+import '../../services/api_service.dart';
+import '../../services/session_manager.dart';
 import '../../widgets/student_sidebar.dart';
 
 class AssessmentScreen extends StatefulWidget {
-  final StudentDetails? studentDetails;
-
-  const AssessmentScreen({super.key, this.studentDetails});
+  const AssessmentScreen({super.key});
 
   @override
   State<AssessmentScreen> createState() => _AssessmentScreenState();
 }
 
 class _AssessmentScreenState extends State<AssessmentScreen> {
-  int _currentQuestionIndex = 0;
-  Map<String, String> _answers = {};
-  
-  // Sample questions for demo
-  final List<AssessmentQuestion> _questions = [
-    AssessmentQuestion(
-      id: '1',
-      question: 'I enjoy working with tools and machinery',
-      category: RIASECType.realistic,
-      options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'],
-    ),
-    AssessmentQuestion(
-      id: '2',
-      question: 'I like to solve complex problems',
-      category: RIASECType.investigative,
-      options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'],
-    ),
-    AssessmentQuestion(
-      id: '3',
-      question: 'I enjoy creative activities like art and music',
-      category: RIASECType.artistic,
-      options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'],
-    ),
-    AssessmentQuestion(
-      id: '4',
-      question: 'I like helping and teaching others',
-      category: RIASECType.social,
-      options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'],
-    ),
-    AssessmentQuestion(
-      id: '5',
-      question: 'I enjoy leading and organizing activities',
-      category: RIASECType.enterprising,
-      options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'],
-    ),
-    AssessmentQuestion(
-      id: '6',
-      question: 'I prefer structured and organized work environments',
-      category: RIASECType.conventional,
-      options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'],
-    ),
+  final _session = SessionManager();
+  int _currentIndex = 0;
+  // answers: questionId -> score (1-5)
+  final Map<int, int> _answers = {};
+  List<Map<String, dynamic>> _questions = [];
+  bool _isLoading = true;
+  bool _isSubmitting = false;
+  DateTime? _startTime;
+
+  // Score labels
+  final List<Map<String, dynamic>> _scoreOptions = [
+    {'label': 'Strongly Disagree', 'value': 1},
+    {'label': 'Disagree',          'value': 2},
+    {'label': 'Neutral',           'value': 3},
+    {'label': 'Agree',             'value': 4},
+    {'label': 'Strongly Agree',    'value': 5},
   ];
 
-  void _selectAnswer(String answer) {
-    setState(() {
-      _answers[_questions[_currentQuestionIndex].id] = answer;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _startTime = DateTime.now();
+    _loadQuestions();
   }
 
-  void _nextQuestion() {
-    if (_answers.containsKey(_questions[_currentQuestionIndex].id)) {
-      if (_currentQuestionIndex < _questions.length - 1) {
+  Future<void> _loadQuestions() async {
+    try {
+      final data = await ApiService.getQuestions();
+      if (data['status'] == 'success') {
         setState(() {
-          _currentQuestionIndex++;
+          _questions = List<Map<String, dynamic>>.from(data['questions']);
+          _isLoading = false;
         });
-      } else {
-        _submitAssessment();
       }
-    } else {
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load questions. Please try again.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _updateLiveSession() async {
+    if (_session.currentAssessmentId == null) return;
+    final duration = DateTime.now().difference(_startTime!).inSeconds;
+    await ApiService.updateLiveSession(
+      _session.currentAssessmentId!,
+      _currentIndex + 1,
+      duration,
+    );
+  }
+
+  void _selectScore(int score) {
+    final questionId = _questions[_currentIndex]['id'] as int;
+    setState(() => _answers[questionId] = score);
+  }
+
+  void _next() {
+    final questionId = _questions[_currentIndex]['id'] as int;
+    if (!_answers.containsKey(questionId)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an answer')),
+        const SnackBar(content: Text('Please select an answer before continuing.')),
       );
+      return;
+    }
+    if (_currentIndex < _questions.length - 1) {
+      setState(() => _currentIndex++);
+      _updateLiveSession();
+    } else {
+      _confirmSubmit();
     }
   }
 
-  void _previousQuestion() {
-    if (_currentQuestionIndex > 0) {
-      setState(() {
-        _currentQuestionIndex--;
-      });
-    }
+  void _previous() {
+    if (_currentIndex > 0) setState(() => _currentIndex--);
   }
 
-  void _submitAssessment() {
-    // Show loading dialog
+  void _confirmSubmit() {
     showDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Processing your assessment...'),
-              ],
-            ),
+      builder: (ctx) => AlertDialog(
+        title: const Text('Submit Assessment'),
+        content: const Text(
+          'Are you sure you want to submit? You cannot change your answers after submission.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Review Answers'),
           ),
-        ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _submitAssessment();
+            },
+            child: const Text('Submit'),
+          ),
+        ],
       ),
     );
+  }
 
-    // Simulate processing
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.of(context).pop(); // Close loading dialog
-      
-      // Show completion message
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          title: Row(
-            children: [
-              Icon(
-                Icons.check_circle,
-                color: AppTheme.primaryGreen,
-                size: 32,
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text('Assessment Finished'),
-              ),
-            ],
-          ),
-          content: const Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Please Wait for Confirmation',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Your assessment has been submitted successfully. Your results are being processed and will be sent to you via email once reviewed by your guidance counselor.',
+  Future<void> _submitAssessment() async {
+    if (_session.currentAssessmentId == null) return;
+    setState(() => _isSubmitting = true);
+
+    final answerList = _answers.entries
+        .map((e) => {'questionId': e.key, 'score': e.value})
+        .toList();
+
+    try {
+      final data = await ApiService.submitAssessment(
+        _session.currentAssessmentId!,
+        answerList,
+      );
+
+      if (data['status'] == 'success') {
+        _session.currentResultId = data['resultId'];
+        if (mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => AlertDialog(
+              icon: Icon(Icons.check_circle, color: AppTheme.success, size: 48),
+              title: const Text('Assessment Submitted!'),
+              content: const Text(
+                'Your assessment has been submitted and is now pending review by your guidance counselor. '
+                'You will be notified once results are available.',
                 textAlign: TextAlign.center,
               ),
-            ],
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                context.go('/student/dashboard'); // Return to main menu
-              },
-              child: const Text('Return to Main Menu'),
+              actions: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    context.go('/student/dashboard');
+                  },
+                  child: const Text('Return to Dashboard'),
+                ),
+              ],
             ),
-          ],
-        ),
-      );
-    });
+          );
+        }
+      } else {
+        throw Exception(data['message']);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Submission failed: $e')),
+        );
+      }
+    } finally {
+      setState(() => _isSubmitting = false);
+    }
+  }
+
+  Color _getScoreColor(int value) {
+    switch (value) {
+      case 1: return AppTheme.error;
+      case 2: return AppTheme.warning;
+      case 3: return AppTheme.textSecondary;
+      case 4: return AppTheme.success;
+      case 5: return AppTheme.primaryPurple;
+      default: return AppTheme.textSecondary;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentQuestion = _questions[_currentQuestionIndex];
-    final progress = (_currentQuestionIndex + 1) / _questions.length;
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('RIASEC Assessment')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_questions.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('RIASEC Assessment')),
+        body: const Center(child: Text('No questions available.')),
+      );
+    }
+
+    final current = _questions[_currentIndex];
+    final questionId = current['id'] as int;
+    final progress = (_currentIndex + 1) / _questions.length;
+    final selectedScore = _answers[questionId];
 
     return Scaffold(
       drawer: StudentSidebar(currentRoute: '/student/assessment'),
       appBar: AppBar(
         title: const Text('RIASEC Assessment'),
         leading: Builder(
-          builder: (context) => IconButton(
+          builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.home),
-            tooltip: 'Return to Main Menu',
-            onPressed: () => context.go('/student/dashboard'),
+            onPressed: () => _showExitDialog(),
           ),
         ],
       ),
       body: Column(
         children: [
-          // Progress Bar
+          // Progress
           Container(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16),
             color: AppTheme.backgroundWhite,
             child: Column(
               children: [
@@ -199,15 +231,21 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Question ${_currentQuestionIndex + 1} of ${_questions.length}',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      'Question ${_currentIndex + 1} of ${_questions.length}',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
-                    Text(
-                      '${(progress * 100).toInt()}%',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryPurple.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${(progress * 100).toInt()}%',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryPurple,
+                        ),
                       ),
                     ),
                   ],
@@ -215,113 +253,170 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                 const SizedBox(height: 8),
                 LinearProgressIndicator(
                   value: progress,
-                  backgroundColor: AppTheme.dividerColor,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryBlue),
                   minHeight: 8,
+                  borderRadius: BorderRadius.circular(4),
                 ),
               ],
             ),
           ),
-          
-          // Question Content
+
+          // Question + Options
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Question
+                  // Category badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.riasecColor(current['category']).withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      AppTheme.riasecName(current['category']),
+                      style: TextStyle(
+                        color: AppTheme.riasecColor(current['category']),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Text(
-                    currentQuestion.question,
+                    current['question'],
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 32),
-                  
-                  // Answer Options
-                  ...currentQuestion.options.map((option) {
-                    final isSelected = _answers[currentQuestion.id] == option;
+
+                  // Score options
+                  ..._scoreOptions.map((option) {
+                    final value = option['value'] as int;
+                    final isSelected = selectedScore == value;
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: Card(
-                        elevation: isSelected ? 4 : 1,
-                        color: isSelected
-                            ? AppTheme.primaryBlue.withOpacity(0.1)
-                            : AppTheme.backgroundWhite,
-                        child: InkWell(
-                          onTap: () => _selectAnswer(option),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Row(
-                              children: [
-                                Radio<String>(
-                                  value: option,
-                                  groupValue: _answers[currentQuestion.id],
-                                  onChanged: (value) => _selectAnswer(value!),
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: GestureDetector(
+                        onTap: () => _selectScore(value),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? _getScoreColor(value).withOpacity(0.1)
+                                : AppTheme.backgroundWhite,
+                            border: Border.all(
+                              color: isSelected
+                                  ? _getScoreColor(value)
+                                  : AppTheme.dividerColor,
+                              width: isSelected ? 2 : 1,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? _getScoreColor(value)
+                                      : AppTheme.dividerColor,
+                                  shape: BoxShape.circle,
                                 ),
-                                Expanded(
+                                child: Center(
                                   child: Text(
-                                    option,
+                                    '$value',
                                     style: TextStyle(
-                                      fontWeight: isSelected
-                                          ? FontWeight.w600
-                                          : FontWeight.normal,
+                                      color: isSelected ? Colors.white : AppTheme.textSecondary,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(width: 16),
+                              Text(
+                                option['label'],
+                                style: TextStyle(
+                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                  color: isSelected
+                                      ? _getScoreColor(value)
+                                      : AppTheme.textPrimary,
+                                ),
+                              ),
+                              if (isSelected) ...[
+                                const Spacer(),
+                                Icon(Icons.check_circle, color: _getScoreColor(value)),
+                              ]
+                            ],
                           ),
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
           ),
-          
-          // Navigation Buttons
+
+          // Navigation
           Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: AppTheme.backgroundWhite,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
+            padding: const EdgeInsets.all(16),
+            color: AppTheme.backgroundWhite,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (_currentQuestionIndex > 0)
+                if (_currentIndex > 0)
                   OutlinedButton.icon(
-                    onPressed: _previousQuestion,
+                    onPressed: _previous,
                     icon: const Icon(Icons.arrow_back),
                     label: const Text('Previous'),
                   )
                 else
                   const SizedBox(),
-                ElevatedButton.icon(
-                  onPressed: _nextQuestion,
-                  icon: Icon(
-                    _currentQuestionIndex == _questions.length - 1
-                        ? Icons.check
-                        : Icons.arrow_forward,
-                  ),
-                  label: Text(
-                    _currentQuestionIndex == _questions.length - 1
-                        ? 'Submit'
-                        : 'Next',
-                  ),
-                ),
+                _isSubmitting
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton.icon(
+                        onPressed: _next,
+                        icon: Icon(
+                          _currentIndex == _questions.length - 1
+                              ? Icons.check
+                              : Icons.arrow_forward,
+                        ),
+                        label: Text(
+                          _currentIndex == _questions.length - 1 ? 'Submit' : 'Next',
+                        ),
+                      ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showExitDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Leave Assessment?'),
+        content: const Text(
+          'Your progress will be lost if you leave. Are you sure?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Stay'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.go('/student/dashboard');
+            },
+            child: const Text('Leave'),
           ),
         ],
       ),
