@@ -1,4 +1,5 @@
-name: Build
+name: SonarQube Cloud Scan
+
 on:
   push:
     branches:
@@ -7,29 +8,24 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  sonarqube:
-    name: SonarQube
+  sonarqube-scan:
+    name: Static Code Analysis
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
 
-      # 1. Install Flutter on the Windows Runner
-      - name: Install Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          cache: true
 
-      # 2. Replaced <commands_to_build_your_project> with actual Flutter commands
-      - name: Build
-        run: |
-          flutter pub get
-          flutter build windows --no-pub
+      - name: Install Flutter Dependencies
+        run: flutter pub get
 
-      # 3. Run the Scan
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
+        uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
