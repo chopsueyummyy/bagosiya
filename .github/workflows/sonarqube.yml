@@ -10,7 +10,8 @@ on:
 jobs:
   sonarqube-scan:
     name: Static Code Analysis
-    runs-on: windows-latest
+    # Changed from windows-latest to ubuntu-latest
+    runs-on: ubuntu-latest 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
